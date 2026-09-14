@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>BhashaAI - Indian Dialect AI</title>
+
+    <link rel="stylesheet"
+      href="/frontend/style.css">
+
+</head>
+
+
+<body>
+
+    <div class="container">
+
+
+        <!-- HEADER -->
+
+        <header class="header">
+
+            <div class="logo">
+
+                <span class="logo-icon">🗣️</span>
+
+                <div>
+
+                    <h1>BhashaAI</h1>
+
+                    <p>
+                        Indian Dialect Intelligence
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="ai-status">
+
+                <span class="status-dot"></span>
+
+                AI Online
+
+            </div>
+
+        </header>
+
+
+
+        <!-- MAIN -->
+
+        <main>
+
+
+            <!-- INPUT CARD -->
+
+            <section class="card input-card">
+
+                <div class="section-title">
+
+                    <div>
+
+                        <h2>
+                            Talk to BhashaAI
+                        </h2>
+
+                        <p>
+                            Enter a sentence or speak using your microphone.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- TEXT INPUT -->
+
+                <textarea
+                    id="textInput"
+                    rows="5"
+                    placeholder="यहाँ हिंदी वाक्य लिखें..."></textarea>
+
+
+
+                <!-- BUTTONS -->
+
+                <div class="button-row">
+
+
+                    <button
+                        id="voiceButton"
+                        class="voice-button"
+                        onclick="startVoiceTyping()">
+
+                        🎤 Voice Input
+
+                    </button>
+
+
+                    <button
+                        id="detectButton"
+                        class="detect-button"
+                        onclick="detectDialect()">
+
+                        🔍 Detect & Translate
+
+                    </button>
+
+
+                </div>
+
+
+
+                <!-- VOICE STATUS -->
+
+                <div
+                    id="voiceStatus"
+                    class="voice-status">
+
+                    Click Voice Input and start speaking.
+
+                </div>
+
+
+
+                <!-- LOADING -->
+
+                <div
+                    id="loading"
+                    class="loading">
+
+                    <span class="spinner"></span>
+
+                    BhashaAI is thinking...
+
+                </div>
+
+
+            </section>
+
+
+
+            <!-- RESULT CARD -->
+
+            <section
+                id="result"
+                class="card result-card">
+
+
+                <!-- RESULT HEADING -->
+
+                <div class="result-heading">
+
+                    <div>
+
+                        <span class="small-label">
+                            🤖 BHASHAAI RESULT
+                        </span>
+
+                        <h2>
+                            Analysis Complete
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- DETECTED DIALECT -->
+
+                <div class="detected-box">
+
+                    <div>
+
+                        <span>
+                            Detected Dialect
+                        </span>
+
+                        <strong id="dialect">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="confidence-mini">
+
+                        <span>
+                            Confidence
+                        </span>
+
+                        <strong id="confidence">
+                            -
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- STANDARD HINDI -->
+
+                <div class="standard-hindi-box">
+
+                    <div class="translation-header">
+
+                        <div>
+
+                            <span>
+                                🇮🇳 Standard Hindi
+                            </span>
+
+                            <strong id="standardHindi">
+                                -
+                            </strong>
+
+                        </div>
+
+
+                        <!-- SPEAK BUTTON -->
+
+                        <button
+                            class="speak-button"
+                            onclick="speakResult()">
+
+                            🔊 Speak
+
+                        </button>
+
+                    </div>
+
+
+
+                    <!-- VOICE CONTROL -->
+
+                    <div class="voice-options">
+
+                        <span class="voice-info">
+                            🔊 Hindi Voice
+                        </span>
+
+
+                        <button
+                            class="stop-button"
+                            onclick="stopSpeaking()">
+
+                            ⏹ Stop
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- CONFIDENCE -->
+
+                <div class="confidence-section">
+
+                    <div class="confidence-header">
+
+                        <span>
+                            Detection Confidence
+                        </span>
+
+                        <strong id="confidenceDisplay">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="progress-bar">
+
+                        <div
+                            id="confidenceBar"
+                            class="progress-fill">
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- INPUT -->
+
+                <div class="result-item">
+
+                    <span>
+                        📝 Input
+                    </span>
+
+                    <strong id="inputText">
+                        -
+                    </strong>
+
+                </div>
+
+
+
+                <!-- PROBABILITIES -->
+
+                <div class="probability-section">
+
+                    <h3>
+                        Dialect Probabilities
+                    </h3>
+
+
+
+                    <!-- HINDI -->
+
+                    <div class="probability-item">
+
+                        <div class="probability-label">
+
+                            <span>
+                                Hindi
+                            </span>
+
+                            <strong id="hindiProbability">
+                                0%
+                            </strong>
+
+                        </div>
+
+
+                        <div class="probability-bar">
+
+                            <div
+                                id="hindiBar"
+                                class="probability-fill">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- BRAJ -->
+
+                    <div class="probability-item">
+
+                        <div class="probability-label">
+
+                            <span>
+                                Braj
+                            </span>
+
+                            <strong id="brajProbability">
+                                0%
+                            </strong>
+
+                        </div>
+
+
+                        <div class="probability-bar">
+
+                            <div
+                                id="brajBar"
+                                class="probability-fill">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- AWADHI -->
+
+                    <div class="probability-item">
+
+                        <div class="probability-label">
+
+                            <span>
+                                Awadhi
+                            </span>
+
+                            <strong id="awadhiProbability">
+                                0%
+                            </strong>
+
+                        </div>
+
+
+                        <div class="probability-bar">
+
+                            <div
+                                id="awadhiBar"
+                                class="probability-fill">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- BHOJPURI -->
+
+                    <div class="probability-item">
+
+                        <div class="probability-label">
+
+                            <span>
+                                Bhojpuri
+                            </span>
+
+                            <strong id="bhojpuriProbability">
+                                0%
+                            </strong>
+
+                        </div>
+
+
+                        <div class="probability-bar">
+
+                            <div
+                                id="bhojpuriBar"
+                                class="probability-fill">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- MAGAHI -->
+
+                    <div class="probability-item">
+
+                        <div class="probability-label">
+
+                            <span>
+                                Magahi
+                            </span>
+
+                            <strong id="magahiProbability">
+                                0%
+                            </strong>
+
+                        </div>
+
+
+                        <div class="probability-bar">
+
+                            <div
+                                id="magahiBar"
+                                class="probability-fill">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+            </section>
+
+
+        </main>
+
+
+
+        <!-- FOOTER -->
+
+        <footer>
+
+            <p>
+                BhashaAI • AI-powered Indian Dialect Detection & Translation
+            </p>
+
+        </footer>
+
+
+    </div>
+
+
+
+    <!-- JAVASCRIPT -->
+
+    <script src="/frontend/script.js"></script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+*.log
+
+dialect_model_old.pkl
+dialect_model_v3.pkl
+char_vectorizer_v3.pkl
+
+dataset/dialects.csv
