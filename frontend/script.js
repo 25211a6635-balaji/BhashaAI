@@ -231,28 +231,22 @@ if (
                 "🎤 Voice Input";
 
 
+            voiceStatus.style.display =
+                "block";
+
+
             if (
-                event.error ===
-                "not-allowed"
+                event.error === "not-allowed"
             ) {
 
-                voiceStatus.style.display =
-                    "block";
-
-
                 voiceStatus.innerText =
-                    "❌ Microphone permission was denied.";
+                    "⚠️ Microphone permission was denied.";
 
             }
 
             else if (
-                event.error ===
-                "no-speech"
+                event.error === "no-speech"
             ) {
-
-                voiceStatus.style.display =
-                    "block";
-
 
                 voiceStatus.innerText =
                     "⚠️ No speech detected. Please try again.";
@@ -261,12 +255,8 @@ if (
 
             else {
 
-                voiceStatus.style.display =
-                    "block";
-
-
                 voiceStatus.innerText =
-                    "❌ Voice recognition error. Please try again.";
+                    "⚠️ Voice recognition error. Please try again.";
 
             }
 
@@ -276,261 +266,355 @@ if (
 
 
 /* ==========================================
-   START VOICE INPUT
+   VOICE BUTTON
 ========================================== */
 
-function startVoiceTyping() {
+if (voiceButton) {
 
-    if (!recognition) {
+    voiceButton.addEventListener(
+        "click",
+        function () {
 
-        alert(
-            "Voice input is not supported in this browser.\n\n" +
-            "Please use Google Chrome or Microsoft Edge."
-        );
+            if (!recognition) {
 
-        return;
+                alert(
+                    "Voice recognition is not supported in this browser."
+                );
 
-    }
+                return;
 
-
-    /* Stop if already listening */
-
-    if (isListening) {
-
-        recognition.stop();
-
-        return;
-
-    }
+            }
 
 
-    voiceStatus.style.display =
-        "block";
+            if (isListening) {
 
+                recognition.stop();
 
-    voiceStatus.innerText =
-        "🎤 Starting microphone...";
+            }
 
+            else {
 
-    try {
+                recognition.start();
 
-        recognition.start();
+            }
 
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-    }
+        }
+    );
 
 }
 
 
 /* ==========================================
-   DETECT DIALECT
+   DETECT & TRANSLATE
 ========================================== */
 
-async function detectDialect() {
+if (detectButton) {
 
-    const text =
-        textInput.value.trim();
+    detectButton.addEventListener(
+        "click",
+        async function () {
 
-
-    if (!text) {
-
-        alert(
-            "Please enter a sentence or use Voice Input first."
-        );
-
-        return;
-
-    }
+            const sentence =
+                textInput.value.trim();
 
 
-    /* Show loading */
+            /* --------------------------------
+               EMPTY INPUT
+            -------------------------------- */
 
-    loading.style.display =
-        "block";
+            if (!sentence) {
 
+                alert(
+                    "Please enter a Hindi sentence first."
+                );
 
-    result.style.display =
-        "none";
+                return;
 
-
-    detectButton.disabled =
-        true;
-
-
-    voiceButton.disabled =
-        true;
+            }
 
 
-    detectButton.innerText =
-        "Analyzing...";
+            /* --------------------------------
+               SHOW LOADING
+            -------------------------------- */
+
+            if (loading) {
+
+                loading.style.display =
+                    "block";
+
+            }
 
 
-    try {
+            if (result) {
 
-        const response =
-            await fetch(
-                "/predict", ...)
-                {
-                    method: "POST",
+                result.style.display =
+                    "none";
 
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
+            }
 
-                    body: JSON.stringify({
-                        text: text
-                    })
+
+            detectButton.disabled =
+                true;
+
+
+            try {
+
+                console.log(
+                    "Sending sentence to BhashaAI:",
+                    sentence
+                );
+
+
+                /* ----------------------------
+                   SEND TO FASTAPI
+                ---------------------------- */
+
+                const response =
+                    await fetch(
+                        "/predict",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    text: sentence
+                                })
+                        }
+                    );
+
+
+                console.log(
+                    "Backend response status:",
+                    response.status
+                );
+
+
+                /* ----------------------------
+                   CHECK RESPONSE
+                ---------------------------- */
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Backend returned HTTP " +
+                        response.status
+                    );
+
                 }
-            );
 
 
-        const data =
-            await response.json();
+                const data =
+                    await response.json();
 
 
-        if (!response.ok) {
+                console.log(
+                    "BhashaAI result:",
+                    data
+                );
 
-            throw new Error(
-                data.detail ||
-                "Something went wrong."
-            );
+
+                /* ----------------------------
+                   CHECK API ERROR
+                ---------------------------- */
+
+                if (data.error) {
+
+                    throw new Error(
+                        data.error
+                    );
+
+                }
+
+
+                /* ----------------------------
+                   DISPLAY INPUT
+                ---------------------------- */
+
+                if (inputText) {
+
+                    inputText.textContent =
+                        data.input || sentence;
+
+                }
+
+
+                /* ----------------------------
+                   DISPLAY DIALECT
+                ---------------------------- */
+
+                if (dialect) {
+
+                    dialect.textContent =
+                        data.dialect || "-";
+
+                }
+
+
+                /* ----------------------------
+                   DISPLAY STANDARD HINDI
+                ---------------------------- */
+
+                if (standardHindi) {
+
+                    standardHindi.textContent =
+                        data.standard_hindi ||
+                        data.input ||
+                        sentence;
+
+                }
+
+
+                /* ----------------------------
+                   DISPLAY CONFIDENCE
+                ---------------------------- */
+
+                const confidenceValue =
+                    Number(
+                        data.confidence || 0
+                    );
+
+
+                if (confidence) {
+
+                    confidence.textContent =
+                        confidenceValue.toFixed(2) +
+                        "%";
+
+                }
+
+
+                if (confidenceDisplay) {
+
+                    confidenceDisplay.textContent =
+                        confidenceValue.toFixed(2) +
+                        "%";
+
+                }
+
+
+                if (confidenceBar) {
+
+                    confidenceBar.style.width =
+                        confidenceValue + "%";
+
+                }
+
+
+                /* ----------------------------
+                   DISPLAY PROBABILITIES
+                ---------------------------- */
+
+                if (data.probabilities) {
+
+                    Object.keys(
+                        probabilityElements
+                    ).forEach(
+                        function (code) {
+
+                            const elements =
+                                probabilityElements[
+                                    code
+                                ];
+
+
+                            if (!elements) {
+
+                                return;
+
+                            }
+
+
+                            const value =
+                                Number(
+                                    data.probabilities[
+                                        code
+                                    ] || 0
+                                );
+
+
+                            if (elements.text) {
+
+                                elements.text.textContent =
+                                    value.toFixed(2) +
+                                    "%";
+
+                            }
+
+
+                            if (elements.bar) {
+
+                                elements.bar.style.width =
+                                    value + "%";
+
+                            }
+
+                        }
+                    );
+
+                }
+
+
+                /* ----------------------------
+                   SHOW RESULT
+                ---------------------------- */
+
+                if (result) {
+
+                    result.style.display =
+                        "block";
+
+                }
+
+
+                /* ----------------------------
+                   SAVE FOR VOICE OUTPUT
+                ---------------------------- */
+
+                window.latestStandardHindi =
+                    data.standard_hindi ||
+                    data.input ||
+                    sentence;
+
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "BhashaAI error:",
+                    error
+                );
+
+
+                alert(
+                    "Unable to connect to BhashaAI backend.\n\n" +
+                    error.message
+                );
+
+            }
+
+            finally {
+
+                if (loading) {
+
+                    loading.style.display =
+                        "none";
+
+                }
+
+
+                detectButton.disabled =
+                    false;
+
+            }
 
         }
-
-
-        if (data.error) {
-
-            throw new Error(
-                data.error
-            );
-
-        }
-
-
-        /* ----------------------------------
-           UPDATE INPUT
-        ---------------------------------- */
-
-        inputText.textContent =
-            data.input;
-
-
-        /* ----------------------------------
-           UPDATE DIALECT
-        ---------------------------------- */
-
-        dialect.textContent =
-            data.dialect;
-
-
-        /* ----------------------------------
-           UPDATE STANDARD HINDI
-        ---------------------------------- */
-
-        standardHindi.textContent =
-            data.standard_hindi;
-
-
-        /* ----------------------------------
-           UPDATE CONFIDENCE
-        ---------------------------------- */
-
-        confidence.textContent =
-            data.confidence + "%";
-
-
-        confidenceDisplay.textContent =
-            data.confidence + "%";
-
-
-        confidenceBar.style.width =
-            data.confidence + "%";
-
-
-        /* ----------------------------------
-           UPDATE PROBABILITIES
-        ---------------------------------- */
-
-        for (
-            const code in probabilityElements
-        ) {
-
-            const percentage =
-                data.probabilities[code] || 0;
-
-
-            probabilityElements[code]
-                .text
-                .textContent =
-                percentage + "%";
-
-
-            probabilityElements[code]
-                .bar
-                .style.width =
-                percentage + "%";
-
-        }
-
-
-        /* Save latest translation */
-
-        window.latestStandardHindi =
-            data.standard_hindi;
-
-
-        /* Show result */
-
-        result.style.display =
-            "block";
-
-
-        voiceStatus.style.display =
-            "none";
-
-    }
-
-
-    catch (error) {
-
-        console.error(
-            "BhashaAI Error:",
-            error
-        );
-
-
-        alert(
-            "Unable to connect to BhashaAI backend.\n\n" +
-            "Make sure FastAPI is running."
-        );
-
-    }
-
-
-    finally {
-
-        loading.style.display =
-            "none";
-
-
-        detectButton.disabled =
-            false;
-
-
-        voiceButton.disabled =
-            false;
-
-
-        detectButton.innerText =
-            "🔍 Detect & Translate";
-
-    }
+    );
 
 }
 
@@ -543,7 +627,11 @@ function speakResult() {
 
     const text =
         window.latestStandardHindi ||
-        standardHindi.textContent;
+        (
+            standardHindi
+                ? standardHindi.textContent
+                : ""
+        );
 
 
     if (
@@ -560,7 +648,7 @@ function speakResult() {
     }
 
 
-    /* Stop any previous speech */
+    /* Stop previous speech */
 
     window.speechSynthesis.cancel();
 
@@ -587,9 +675,9 @@ function speakResult() {
         1;
 
 
-    /* ----------------------------------
+    /* --------------------------------------
        FIND HINDI VOICE
-    ---------------------------------- */
+    -------------------------------------- */
 
     const voices =
         window.speechSynthesis.getVoices();
@@ -597,10 +685,13 @@ function speakResult() {
 
     const hindiVoices =
         voices.filter(
-            voice =>
-                voice.lang
+            function (voice) {
+
+                return voice.lang
                     .toLowerCase()
-                    .startsWith("hi")
+                    .startsWith("hi");
+
+            }
         );
 
 
@@ -614,43 +705,51 @@ function speakResult() {
     }
 
 
-    /* ----------------------------------
+    /* --------------------------------------
        SPEECH START
-    ---------------------------------- */
+    -------------------------------------- */
 
     utterance.onstart =
         function () {
 
-            voiceStatus.style.display =
-                "block";
+            if (voiceStatus) {
+
+                voiceStatus.style.display =
+                    "block";
 
 
-            voiceStatus.innerText =
-                "🔊 BhashaAI is speaking Standard Hindi...";
+                voiceStatus.innerText =
+                    "🔊 BhashaAI is speaking Standard Hindi...";
+
+            }
 
         };
 
 
-    /* ----------------------------------
+    /* --------------------------------------
        SPEECH END
-    ---------------------------------- */
+    -------------------------------------- */
 
     utterance.onend =
         function () {
 
-            voiceStatus.style.display =
-                "block";
+            if (voiceStatus) {
+
+                voiceStatus.style.display =
+                    "block";
 
 
-            voiceStatus.innerText =
-                "✅ Finished speaking.";
+                voiceStatus.innerText =
+                    "✅ Finished speaking.";
+
+            }
 
         };
 
 
-    /* ----------------------------------
+    /* --------------------------------------
        SPEECH ERROR
-    ---------------------------------- */
+    -------------------------------------- */
 
     utterance.onerror =
         function (event) {
@@ -661,40 +760,23 @@ function speakResult() {
             );
 
 
-            voiceStatus.style.display =
-                "block";
+            if (voiceStatus) {
+
+                voiceStatus.style.display =
+                    "block";
 
 
-            voiceStatus.innerText =
-                "❌ Unable to play the voice.";
+                voiceStatus.innerText =
+                    "⚠️ Voice stopped.";
+
+            }
 
         };
 
 
-    /* Start speaking */
-
     window.speechSynthesis.speak(
         utterance
     );
-
-}
-
-
-/* ==========================================
-   STOP VOICE
-========================================== */
-
-function stopSpeaking() {
-
-    window.speechSynthesis.cancel();
-
-
-    voiceStatus.style.display =
-        "block";
-
-
-    voiceStatus.innerText =
-        "⏹ Voice stopped.";
 
 }
 
@@ -715,7 +797,7 @@ function loadVoices() {
 
 
     voices.forEach(
-        voice => {
+        function (voice) {
 
             console.log(
                 voice.name,
@@ -729,8 +811,66 @@ function loadVoices() {
 }
 
 
-window.speechSynthesis.onvoiceschanged =
-    loadVoices;
+if (
+    "speechSynthesis" in window
+) {
+
+    window.speechSynthesis.onvoiceschanged =
+        loadVoices;
 
 
-loadVoices();
+    loadVoices();
+
+}
+
+
+/* ==========================================
+   SPEAK BUTTON
+========================================== */
+
+const speakButton =
+    document.getElementById("speakButton");
+
+
+if (speakButton) {
+
+    speakButton.addEventListener(
+        "click",
+        speakResult
+    );
+
+}
+
+
+/* ==========================================
+   STOP SPEAKING BUTTON
+========================================== */
+
+const stopButton =
+    document.getElementById("stopButton");
+
+
+if (stopButton) {
+
+    stopButton.addEventListener(
+        "click",
+        function () {
+
+            window.speechSynthesis.cancel();
+
+
+            if (voiceStatus) {
+
+                voiceStatus.style.display =
+                    "block";
+
+
+                voiceStatus.innerText =
+                    "⏹️ Voice stopped.";
+
+            }
+
+        }
+    );
+
+}
